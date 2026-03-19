@@ -3,7 +3,7 @@ import db from '@/lib/db';
 
 export async function GET() {
   try {
-    const result = await db.execute('SELECT name, score, duration, created_at FROM leaderboard ORDER BY score DESC, duration ASC LIMIT 10');
+    const result = await db.execute('SELECT id, name, score, duration, ip, fast, medium, slow, created_at FROM leaderboard ORDER BY score DESC, duration ASC LIMIT 10');
     return NextResponse.json(result.rows);
   } catch (error) {
     console.error('Leaderboard Fetch Error:', error);
@@ -13,17 +13,21 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { name, score, duration } = await req.json();
-    const forwarded = req.headers.get('x-forwarded-for');
+    const { name, score, duration, stats } = await req.json();
+    const forwarded = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
     const ip = forwarded ? forwarded.split(',')[0] : '127.0.0.1';
 
-    if (!name || typeof score !== 'number' || typeof duration !== 'number') {
+    if (!name || typeof score !== 'number' || typeof duration !== 'number' || !stats) {
       return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     }
 
+    if (score <= 0 || duration <= 10000) {
+      return NextResponse.json({ message: 'Score not saved due to requirements.' });
+    }
+
     await db.execute({
-      sql: 'INSERT INTO leaderboard (name, score, duration, ip) VALUES (?, ?, ?, ?)',
-      args: [name, score, duration, ip]
+      sql: 'INSERT INTO leaderboard (name, score, duration, ip, fast, medium, slow) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      args: [name, score, duration, ip, stats.fast || 0, stats.medium || 0, stats.slow || 0]
     });
 
     return NextResponse.json({ message: 'Score saved!' });
