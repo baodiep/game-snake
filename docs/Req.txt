@@ -1,0 +1,19 @@
+Xây dựng game snake bằng nextjs, sử dụng css thuần, Tailwind. Mỗi người chơi trước khi bắt đầu cần nhập tên. Có thể lưu được bảng xếp hạng theo tên và địa chỉ IP người dùng.
+1. Phân tích Logic Cốt lõi (Core Engine)
+- Điểm quan trọng nhất trong yêu cầu là "deterministic, testable logic" (logic xác định và có thể kiểm thử).
+- Điều này có nghĩa là logic xử lý game nên được tách biệt hoàn toàn khỏi phần hiển thị (UI).
+- Hệ tọa độ: Game hoạt động trên một lưới (grid). 
+- Rắn là một mảng các tọa độ $[(x_1, y_1), (x_2, y_2), ...]$.
+- Cơ chế di chuyển: Mỗi "tick" (nhịp), bạn chỉ cần thêm một đầu mới dựa trên hướng hiện tại và xóa đuôi cũ (trừ khi ăn được mồi).
+- Xử lý va chạm: Cần kiểm tra hai điều kiện:Đầu chạm vào biên của lưới.Đầu trùng với bất kỳ tọa độ nào trong thân (self-collision).
+2. Ràng buộc về Hạ tầng & Công nghệ
+- Yêu cầu "Reuse existing project tooling" là một cảnh báo quan trọng:
+ + Ngôn ngữ/Framework: Nếu repo đang dùng React, hãy dùng useEffect hoặc một custom hook cho game loop. 
+ + Nếu là Vue/Svelte, hãy dùng cơ chế reactivity tương ứng.Styling: Sử dụng CSS thuần, Tailwind, hoặc Styled Components có sẵn. Tuyệt đối không cài thêm thư viện game engine như PixiJS hay Phaser.
+- State Management: Với quy mô này, useState hoặc useReducer (nếu dùng React) là quá đủ.
+3. Những điểm cần lưu ý để "vượt mong đợi":
+ - Mặc dù yêu cầu tối giản, nhưng để sản phẩm thực sự chuyên nghiệp trong một repo có sẵn, bạn nên chú ý:
+  + Tính nhất quán của Tick Timer: Sử dụng setInterval đôi khi bị lệch do cơ chế render của trình duyệt. 
+  + Cân nhắc dùng requestAnimationFrame để đảm bảo game mượt mà hơn trên các màn hình có tần số quét khác nhau.
+  + Ngăn chặn "Self-Collision" tức thì: Đảm bảo người chơi không thể quay đầu 180° ngay lập tức (ví dụ: đang đi sang phải mà nhấn phím sang trái thì không được tính).
+  + Clean-up: Khi người chơi rời khỏi trang hoặc component bị unmount, phải xóa interval hoặc listener để tránh rò rỉ bộ nhớ (memory leak).

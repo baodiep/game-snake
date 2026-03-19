@@ -1,0 +1,21 @@
+# Checklist Triển khai Game Snake
+
+- [ ] Khởi tạo dự án Next.js với Tailwind CSS
+- [ ] Thiết lập bố cục (layout) và phong cách toàn cục (global styles)
+- [ ] Xây dựng Core Engine (Logic Cốt lõi) cho Game Snake
+  - [ ] Định nghĩa hệ tọa độ và trạng thái trò chơi (game state)
+  - [ ] Cơ chế di chuyển (dựa trên nhịp - tick)
+  - [ ] Xử lý va chạm (chạm tường và tự cắn vào thân)
+  - [ ] Ngăn chặn việc quay đầu 180 độ ngay lập tức
+- [ ] Xây dựng các Components UI (Giao diện người dùng)
+  - [ ] Màn hình Bắt đầu (Nhập tên người chơi)
+  - [ ] Bàn chơi Game (Lưới, Rắn, Mồi)
+  - [ ] Màn hình Game Over (Thua cuộc)
+  - [ ] Màn hình Bảng xếp hạng (Leaderboard)
+- [ ] Triển khai Custom Hook cho Game Loop (`useGameLoop`)
+  - [ ] Sử dụng `requestAnimationFrame` để căn chỉnh thời gian chuẩn xác
+  - [ ] Dọn dẹp bộ nhớ (Xóa interval/listener khi unmount)
+- [ ] Tích hợp Game Engine với React UI
+- [ ] Triển khai Bảng xếp hạng
+  - [ ] Lưu điểm số, tên và địa chỉ IP (ví dụ: dùng API route và SQLite DB)
+- [ ] Hoàn thiện và Kiểm tra lại
