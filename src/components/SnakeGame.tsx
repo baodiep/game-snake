@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useGameLoop } from '@/hooks/useGameLoop';
 import { Direction, GameState, generateFood } from '@/lib/engine/gameLogic';
-import { Trophy, Play, RotateCcw, User, MapPin, Clock, Grip, Gamepad2 } from 'lucide-react';
+import { Trophy, Play, RotateCcw, User, MapPin, Clock, Grip, Gamepad2, Loader2 } from 'lucide-react';
 import { useSwipeable } from 'react-swipeable';
 
 function formatTime(ms: number) {
@@ -65,6 +65,7 @@ export default function SnakeGame() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [showDPad, setShowDPad] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const lastTapRef = React.useRef(0);
 
   const { gameState, setDirection, resetGame, pauseGame, resumeGame } = useGameLoop(initialGameState, INITIAL_TICK_RATE);
@@ -76,7 +77,7 @@ export default function SnakeGame() {
     onSwipedRight: () => { if (screen === 'PLAYING' && !gameState.isPaused) setDirection(Direction.RIGHT); },
     onTap: () => {
       const now = Date.now();
-      if (now - lastTapRef.current < 300) { 
+      if (now - lastTapRef.current < 300) {
         if (screen === 'PLAYING') {
           // Ignore toggles during countdown
           if (countdown === null) {
@@ -141,7 +142,7 @@ export default function SnakeGame() {
   // Countdown handler
   useEffect(() => {
     if (countdown === null) return;
-    
+
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
@@ -162,16 +163,16 @@ export default function SnakeGame() {
 
   const saveScore = async () => {
     if (gameState.score <= 0 || gameState.totalTime <= 10000) return;
-    
+
     try {
       await fetch('/api/leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            name: playerName || 'Anonymous', 
-            score: gameState.score,
-            duration: gameState.totalTime,
-            stats: gameState.stats
+        body: JSON.stringify({
+          name: playerName || 'Anonymous',
+          score: gameState.score,
+          duration: gameState.totalTime,
+          stats: gameState.stats
         }),
       });
     } catch (err) {
@@ -181,6 +182,7 @@ export default function SnakeGame() {
 
   const fetchLeaderboard = async () => {
     setScreen('LEADERBOARD');
+    setIsLoadingData(true);
     try {
       const resp = await fetch('/api/leaderboard');
       const data = await resp.json();
@@ -192,6 +194,8 @@ export default function SnakeGame() {
     } catch (err) {
       console.error('Failed to fetch leaderboard:', err);
       setLeaderboard([]);
+    } finally {
+      setIsLoadingData(false);
     }
   };
 
@@ -218,7 +222,7 @@ export default function SnakeGame() {
     <div className="flex flex-col items-center justify-center min-h-screen text-white p-4">
       {/* Container with Glassmorphism */}
       <div className={cn("relative w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 lg:p-10 shadow-2xl focus-within:ring-2 focus-within:ring-white transition-all duration-300", screen === 'PLAYING' ? "max-w-2xl lg:max-w-4xl" : "max-w-lg")}>
-        
+
         {/* Decorative elements */}
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/20 blur-3xl rounded-full" />
         <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/20 blur-3xl rounded-full" />
@@ -241,7 +245,7 @@ export default function SnakeGame() {
               </div>
 
               {/* D-Pad Pre-Toggle */}
-              <button 
+              <button
                 onClick={() => setShowDPad(!showDPad)}
                 className={cn(
                   "w-full flex justify-between items-center bg-white/5 border rounded-2xl py-3 px-4 transition-all group mt-2",
@@ -266,11 +270,11 @@ export default function SnakeGame() {
                 BẮT ĐẦU CHƠI
               </button>
             </div>
-            <button 
-                onClick={fetchLeaderboard}
-                className="text-white/40 hover:text-white transition-colors flex items-center gap-2 text-sm"
+            <button
+              onClick={fetchLeaderboard}
+              className="text-white/40 hover:text-white transition-colors flex items-center gap-2 text-sm"
             >
-                <Trophy className="w-4 h-4" /> Bảng xếp hạng
+              <Trophy className="w-4 h-4" /> Bảng xếp hạng
             </button>
           </div>
         )}
@@ -281,45 +285,45 @@ export default function SnakeGame() {
             {/* Control Panel (Header & D-Pad) */}
             <div className="flex flex-col w-full max-w-sm gap-4 order-2 lg:order-1 transition-all duration-300">
               <div className="flex justify-between lg:flex-col lg:gap-4 w-full bg-white/5 p-4 rounded-xl lg:rounded-2xl border border-white/10 backdrop-blur-md">
-                  <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse hidden lg:block" />
-                      <User className="w-4 h-4 text-blue-400 lg:hidden" />
-                      <span className="font-bold text-base lg:text-lg uppercase tracking-widest truncate">{playerName}</span>
-                  </div>
-                  <div className="flex gap-2 lg:flex-col lg:w-full">
-                    <div className="flex gap-2">
-                      <div className="bg-black/20 px-3 py-2 rounded-xl flex items-center justify-center gap-2 flex-1 border border-white/5">
-                          <Clock className="w-4 h-4 text-blue-300" />
-                          <span className="font-bold text-sm tabular-nums">{formatTime(gameState.totalTime)}</span>
-                      </div>
-                      <div className="bg-black/20 px-3 py-2 rounded-xl flex items-center justify-center gap-2 flex-1 border border-white/5">
-                          <Trophy className="w-4 h-4 text-yellow-500" />
-                          <span className="font-bold text-sm">{gameState.score}</span>
-                      </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse hidden lg:block" />
+                  <User className="w-4 h-4 text-blue-400 lg:hidden" />
+                  <span className="font-bold text-base lg:text-lg uppercase tracking-widest truncate">{playerName}</span>
+                </div>
+                <div className="flex gap-2 lg:flex-col lg:w-full">
+                  <div className="flex gap-2">
+                    <div className="bg-black/20 px-3 py-2 rounded-xl flex items-center justify-center gap-2 flex-1 border border-white/5">
+                      <Clock className="w-4 h-4 text-blue-300" />
+                      <span className="font-bold text-sm tabular-nums">{formatTime(gameState.totalTime)}</span>
                     </div>
-                    <div className="flex gap-2 w-full mt-2 lg:mt-0">
-                      <button 
-                        onClick={togglePause}
-                        disabled={countdown !== null}
-                        className="bg-white/10 hover:bg-white/20 p-2.5 rounded-xl border border-white/10 transition-all flex-1 justify-center items-center flex disabled:opacity-50"
-                        title="Tạm dừng / Tiếp tục"
-                      >
-                        <span className="hidden lg:block text-xs font-bold mr-2">PAUSE</span>
-                        <RotateCcw className={cn("w-4 h-4 text-white/70", gameState.isPaused ? "" : "animate-[spin_4s_linear_infinite] opacity-50")} />
-                      </button>
-                      <button 
-                        onClick={() => setShowDPad(!showDPad)}
-                        className={cn(
-                          "p-2.5 rounded-xl border shadow-lg transition-all flex-1 justify-center items-center flex",
-                          showDPad ? "bg-blue-500/30 border-blue-500/50 text-blue-300" : "bg-white/10 hover:bg-white/20 border-white/10 text-white/50"
-                        )}
-                        title="Bật / Tắt phím ảo D-Pad"
-                      >
-                        <span className="hidden lg:block text-xs font-bold mr-2">D-PAD</span>
-                        <Gamepad2 className="w-4 h-4" />
-                      </button>
+                    <div className="bg-black/20 px-3 py-2 rounded-xl flex items-center justify-center gap-2 flex-1 border border-white/5">
+                      <Trophy className="w-4 h-4 text-yellow-500" />
+                      <span className="font-bold text-sm">{gameState.score}</span>
                     </div>
                   </div>
+                  <div className="flex gap-2 w-full mt-2 lg:mt-0">
+                    <button
+                      onClick={togglePause}
+                      disabled={countdown !== null}
+                      className="bg-white/10 hover:bg-white/20 p-2.5 rounded-xl border border-white/10 transition-all flex-1 justify-center items-center flex disabled:opacity-50"
+                      title="Tạm dừng / Tiếp tục"
+                    >
+                      <span className="hidden lg:block text-xs font-bold mr-2">PAUSE</span>
+                      <RotateCcw className={cn("w-4 h-4 text-white/70", gameState.isPaused ? "" : "animate-[spin_4s_linear_infinite] opacity-50")} />
+                    </button>
+                    <button
+                      onClick={() => setShowDPad(!showDPad)}
+                      className={cn(
+                        "p-2.5 rounded-xl border shadow-lg transition-all flex-1 justify-center items-center flex",
+                        showDPad ? "bg-blue-500/30 border-blue-500/50 text-blue-300" : "bg-white/10 hover:bg-white/20 border-white/10 text-white/50"
+                      )}
+                      title="Bật / Tắt phím ảo D-Pad"
+                    >
+                      <span className="hidden lg:block text-xs font-bold mr-2">D-PAD</span>
+                      <Gamepad2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {/* D-Pad Layout */}
@@ -340,16 +344,16 @@ export default function SnakeGame() {
             </div>
 
             {/* Game Board */}
-            <div 
+            <div
               {...swipeHandlers}
               className={cn(
                 "relative transition-all duration-300 touch-none flex-shrink-0 order-1 lg:order-2 w-full",
                 showDPad ? "max-w-xs sm:max-w-sm lg:max-w-md" : "max-w-md sm:max-w-lg lg:max-w-xl"
               )}
             >
-              <div 
+              <div
                 className="relative grid gap-px border-[6px] border-[#0a0f1d] rounded-2xl bg-white/10 border-b-blue-900 border-r-blue-900 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
-                style={{ 
+                style={{
                   gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))`,
                   width: '100%',
                   aspectRatio: '1/1'
@@ -369,7 +373,7 @@ export default function SnakeGame() {
                       ) : (
                         <div className="flex flex-col items-center gap-2 text-center">
                           <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center mb-1">
-                             <Play className="w-5 h-5 fill-white text-white" />
+                            <Play className="w-5 h-5 fill-white text-white" />
                           </div>
                           <h3 className="text-2xl font-black tracking-tighter text-white drop-shadow-md">ĐÃ TẠM DỪNG</h3>
                           <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">Chạm / Space để tiếp tục</p>
@@ -387,8 +391,8 @@ export default function SnakeGame() {
                   const isFood = gameState.food.x === x && gameState.food.y === y;
 
                   return (
-                    <div 
-                      key={i} 
+                    <div
+                      key={i}
                       className={cn(
                         "w-full h-full rounded-sm transition-all duration-150",
                         isSnake && !isHead && "bg-blue-400/80 shadow-[0_0_8px_rgba(96,165,250,0.6)]",
@@ -400,9 +404,9 @@ export default function SnakeGame() {
                 })}
               </div>
             </div>
-            
+
             <p className="md:hidden text-center text-white/20 text-[10px] mt-2 uppercase tracking-[0.2em]">
-              Vuốt màn hình để di chuyển<br/>Chạm đúp để Tạm dừng
+              Vuốt màn hình để di chuyển<br />Chạm đúp để Tạm dừng
             </p>
           </div>
         )}
@@ -411,14 +415,14 @@ export default function SnakeGame() {
         {screen === 'GAMEOVER' && (
           <div className="flex flex-col items-center gap-8 py-8 animate-in zoom-in-95 duration-500">
             <div className="relative">
-                <div className="absolute inset-0 bg-red-500/20 blur-3xl rounded-full" />
-                <h2 className="text-6xl font-black text-white relative">GAME OVER</h2>
+              <div className="absolute inset-0 bg-red-500/20 blur-3xl rounded-full" />
+              <h2 className="text-6xl font-black text-white relative">GAME OVER</h2>
             </div>
             <div className="text-center">
               <p className="text-white/40 text-lg">Điểm của bạn</p>
               <p className="text-7xl font-black text-blue-400">{gameState.score}</p>
               <div className="flex justify-center mt-2">
-                 <StatsDisplay stats={gameState.stats} />
+                <StatsDisplay stats={gameState.stats} />
               </div>
             </div>
             <div className="w-full space-y-3">
@@ -442,77 +446,84 @@ export default function SnakeGame() {
         {screen === 'LEADERBOARD' && (
           <div className="flex flex-col items-center gap-6 animate-in fade-in duration-500">
             <h2 className="text-3xl font-black flex items-center gap-3">
-                <Trophy className="text-yellow-500" /> BẢNG XẾP HẠNG
+              <Trophy className="text-yellow-500" /> BẢNG XẾP HẠNG
             </h2>
-            <div className="w-full bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
-                <div className="max-h-64 overflow-y-auto w-full">
-                    {leaderboard.length === 0 ? (
-                        <p className="p-8 text-center text-white/20">Chưa có ai ghi điểm...</p>
-                    ) : (
-                        <table className="w-full text-left">
-                            <thead className="bg-white/5">
-                                <tr className="text-xs uppercase tracking-widest text-white/40">
-                                    <th className="px-6 py-4 font-black">Hạng</th>
-                                    <th className="px-6 py-4 font-black">Người chơi</th>
-                                    <th className="px-6 py-4 font-black text-right">Thời gian</th>
-                                    <th className="px-6 py-4 font-black text-right">Điểm</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {leaderboard.map((entry, idx) => (
-                                    <React.Fragment key={idx}>
-                                        <tr 
-                                            className="cursor-pointer border-t border-white/5 hover:bg-white/5 transition-colors group"
-                                            onClick={() => setExpandedIndex(expandedIndex === idx ? null : idx)}
-                                        >
-                                            <td className="px-6 py-4">
-                                                <span className={cn(
-                                                    "w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold",
-                                                    idx === 0 && "bg-yellow-500 text-black",
-                                                    idx === 1 && "bg-slate-400 text-black",
-                                                    idx === 2 && "bg-orange-600 text-white",
-                                                    idx > 2 && "text-white/40"
-                                                )}>
-                                                    {idx + 1}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 font-medium">{entry.name}</td>
-                                            <td className="px-6 py-4 text-right font-mono text-white/40 text-xs">{formatTime(entry.duration)}</td>
-                                            <td className="px-6 py-4 text-right font-black text-blue-400">{entry.score}</td>
-                                        </tr>
-                                        {expandedIndex === idx && (
-                                            <tr className="bg-white/5 animate-in fade-in slide-in-from-top-2 duration-300">
-                                                <td colSpan={4} className="px-6 py-4">
-                                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm bg-black/20 p-4 rounded-xl">
-                                                        <div className="flex items-center gap-2 text-xs font-mono text-white/50 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
-                                                            <MapPin className="w-3 h-3 text-blue-400" /> IP: {entry.ip || 'Local/Unknown'}
-                                                        </div>
-                                                        <div className="flex gap-4">
-                                                            <div className="flex flex-col items-center gap-1">
-                                                                <span className="text-[10px] text-green-400/70 font-bold uppercase tracking-widest">&lt; 3s</span>
-                                                                <span className="font-black text-green-400">{entry.fast || 0}</span>
-                                                            </div>
-                                                            <div className="w-px bg-white/10" />
-                                                            <div className="flex flex-col items-center gap-1">
-                                                                <span className="text-[10px] text-yellow-400/70 font-bold uppercase tracking-widest">3 - 5s</span>
-                                                                <span className="font-black text-yellow-400">{entry.medium || 0}</span>
-                                                            </div>
-                                                            <div className="w-px bg-white/10" />
-                                                            <div className="flex flex-col items-center gap-1">
-                                                                <span className="text-[10px] text-red-400/70 font-bold uppercase tracking-widest">&gt; 5s</span>
-                                                                <span className="font-black text-red-400">{entry.slow || 0}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </React.Fragment>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
+            <div className="w-full bg-white/5 rounded-2xl border border-white/10 overflow-hidden relative min-h-[16rem]">
+              <div className="max-h-64 overflow-y-auto w-full">
+                {isLoadingData ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/40 backdrop-blur-sm z-10 transition-opacity">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                    <p className="text-sm font-medium text-white/50 animate-pulse tracking-widest uppercase">Đang tải dữ liệu...</p>
+                  </div>
+                ) : null}
+
+                {!isLoadingData && leaderboard.length === 0 ? (
+                  <p className="p-8 text-center text-white/20">Chưa có ai ghi điểm...</p>
+                ) : (
+                  <table className="w-full text-left">
+                    <thead className="bg-white/5">
+                      <tr className="text-xs uppercase tracking-widest text-white/40">
+                        <th className="px-6 py-4 font-black">Hạng</th>
+                        <th className="px-6 py-4 font-black">Người chơi</th>
+                        <th className="px-6 py-4 font-black text-right">Thời gian</th>
+                        <th className="px-6 py-4 font-black text-right">Điểm</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leaderboard.map((entry, idx) => (
+                        <React.Fragment key={idx}>
+                          <tr
+                            className="cursor-pointer border-t border-white/5 hover:bg-white/5 transition-colors group"
+                            onClick={() => setExpandedIndex(expandedIndex === idx ? null : idx)}
+                          >
+                            <td className="px-6 py-4">
+                              <span className={cn(
+                                "w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold",
+                                idx === 0 && "bg-yellow-500 text-black",
+                                idx === 1 && "bg-slate-400 text-black",
+                                idx === 2 && "bg-orange-600 text-white",
+                                idx > 2 && "text-white/40"
+                              )}>
+                                {idx + 1}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 font-medium">{entry.name}</td>
+                            <td className="px-6 py-4 text-right font-mono text-white/40 text-xs">{formatTime(entry.duration)}</td>
+                            <td className="px-6 py-4 text-right font-black text-blue-400">{entry.score}</td>
+                          </tr>
+                          {expandedIndex === idx && (
+                            <tr className="bg-white/5 animate-in fade-in slide-in-from-top-2 duration-300">
+                              <td colSpan={4} className="px-6 py-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm bg-black/20 p-4 rounded-xl">
+                                  <div className="flex items-center gap-2 text-xs font-mono text-white/50 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
+                                    <MapPin className="w-3 h-3 text-blue-400" /> IP: {entry.ip || 'Local/Unknown'}
+                                  </div>
+                                  <div className="flex gap-4">
+                                    <div className="flex flex-col items-center gap-1">
+                                      <span className="text-[10px] text-green-400/70 font-bold uppercase tracking-widest">&lt; 3s</span>
+                                      <span className="font-black text-green-400">{entry.fast || 0}</span>
+                                    </div>
+                                    <div className="w-px bg-white/10" />
+                                    <div className="flex flex-col items-center gap-1">
+                                      <span className="text-[10px] text-yellow-400/70 font-bold uppercase tracking-widest">3 - 5s</span>
+                                      <span className="font-black text-yellow-400">{entry.medium || 0}</span>
+                                    </div>
+                                    <div className="w-px bg-white/10" />
+                                    <div className="flex flex-col items-center gap-1">
+                                      <span className="text-[10px] text-red-400/70 font-bold uppercase tracking-widest">&gt; 5s</span>
+                                      <span className="font-black text-red-400">{entry.slow || 0}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
             </div>
             <button
               onClick={() => setScreen('START')}
