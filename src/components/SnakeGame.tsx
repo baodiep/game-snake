@@ -219,9 +219,9 @@ export default function SnakeGame() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen text-white p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen text-white p-3 sm:p-4 w-full mx-auto">
       {/* Container with Glassmorphism */}
-      <div className={cn("relative w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 lg:p-10 shadow-2xl focus-within:ring-2 focus-within:ring-white transition-all duration-300", screen === 'PLAYING' ? "max-w-2xl lg:max-w-5xl" : "max-w-lg")}>
+      <div className={cn("relative w-full mx-auto bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl md:rounded-3xl p-5 sm:p-6 lg:p-10 shadow-2xl focus-within:ring-2 focus-within:ring-white transition-all duration-300", screen === 'PLAYING' ? "max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-5xl xl:max-w-6xl" : "max-w-md md:max-w-lg")}>
 
         {/* Decorative elements */}
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/20 blur-3xl rounded-full" />
@@ -281,9 +281,9 @@ export default function SnakeGame() {
 
         {/* Playing Screen */}
         {screen === 'PLAYING' && (
-          <div className="flex flex-col lg:flex-row w-full items-center justify-center gap-6 lg:gap-8 outline-none select-none">
+          <div className="flex flex-col lg:flex-row w-full items-center lg:items-start justify-center gap-6 lg:gap-10 xl:gap-16 outline-none select-none">
             {/* Control Panel (Header & D-Pad) */}
-            <div className="flex flex-col w-full max-w-sm lg:max-w-[320px] gap-4 order-2 lg:order-1 transition-all duration-300">
+            <div className="flex flex-col w-full lg:flex-1 max-w-sm lg:max-w-[320px] xl:max-w-[380px] gap-4 order-2 lg:order-1 transition-all duration-300 mx-auto lg:mx-0">
               <div className="flex justify-between lg:flex-col lg:gap-4 w-full bg-white/5 p-4 rounded-xl lg:rounded-2xl border border-white/10 backdrop-blur-md">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse hidden lg:block" />
@@ -347,15 +347,14 @@ export default function SnakeGame() {
             <div
               {...swipeHandlers}
               className={cn(
-                "relative transition-all duration-300 touch-none flex-shrink-0 order-1 lg:order-2 w-full",
-                showDPad ? "max-w-xs sm:max-w-sm lg:max-w-md" : "max-w-md sm:max-w-lg lg:max-w-[500px]"
+                "relative transition-all duration-300 touch-none flex-shrink-0 order-1 lg:order-2 w-full lg:flex-1 mx-auto lg:mx-0",
+                showDPad ? "max-w-[280px] sm:max-w-[340px] md:max-w-[400px] lg:max-w-[500px] xl:max-w-[550px]" : "max-w-[320px] sm:max-w-[400px] md:max-w-md lg:max-w-[500px] xl:max-w-[550px]"
               )}
             >
               <div
-                className="relative grid gap-px border-[6px] border-[#0a0f1d] rounded-2xl bg-white/10 border-b-blue-900 border-r-blue-900 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
+                className="relative grid gap-px border-[4px] md:border-[6px] border-[#0a0f1d] rounded-xl md:rounded-2xl bg-white/10 border-b-blue-900 border-r-blue-900 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden w-full"
                 style={{
                   gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))`,
-                  width: '100%',
                   aspectRatio: '1/1'
                 }}
               >
@@ -463,10 +462,11 @@ export default function SnakeGame() {
                   <table className="w-full text-left">
                     <thead className="bg-white/5">
                       <tr className="text-xs uppercase tracking-widest text-white/40">
-                        <th className="px-6 py-4 font-black">Hạng</th>
-                        <th className="px-6 py-4 font-black">Người chơi</th>
-                        <th className="px-6 py-4 font-black text-right">Thời gian</th>
-                        <th className="px-6 py-4 font-black text-right">Điểm</th>
+                        <th className="px-4 py-4 font-black">Hạng</th>
+                        <th className="px-4 py-4 font-black">Người chơi</th>
+                        <th className="px-4 py-4 font-black hidden sm:table-cell">Ngày chơi</th>
+                        <th className="px-4 py-4 font-black text-right hidden md:table-cell">Thời gian</th>
+                        <th className="px-4 py-4 font-black text-right">Điểm</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -476,7 +476,7 @@ export default function SnakeGame() {
                             className="cursor-pointer border-t border-white/5 hover:bg-white/5 transition-colors group"
                             onClick={() => setExpandedIndex(expandedIndex === idx ? null : idx)}
                           >
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-4">
                               <span className={cn(
                                 "w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold",
                                 idx === 0 && "bg-yellow-500 text-black",
@@ -487,13 +487,16 @@ export default function SnakeGame() {
                                 {idx + 1}
                               </span>
                             </td>
-                            <td className="px-6 py-4 font-medium">{entry.name}</td>
-                            <td className="px-6 py-4 text-right font-mono text-white/40 text-xs">{formatTime(entry.duration)}</td>
-                            <td className="px-6 py-4 text-right font-black text-blue-400">{entry.score}</td>
+                            <td className="px-4 py-4 font-medium">{entry.name}</td>
+                            <td className="px-4 py-4 text-xs text-white/40 hidden sm:table-cell">
+                              {entry.created_at ? new Date((entry.created_at as string).replace(' ', 'T') + (!entry.created_at.includes('Z') ? 'Z' : '')).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' }) : 'N/A'}
+                            </td>
+                            <td className="px-4 py-4 text-right font-mono text-white/40 text-xs hidden md:table-cell">{formatTime(entry.duration)}</td>
+                            <td className="px-4 py-4 text-right font-black text-blue-400">{entry.score}</td>
                           </tr>
                           {expandedIndex === idx && (
                             <tr className="bg-white/5 animate-in fade-in slide-in-from-top-2 duration-300">
-                              <td colSpan={4} className="px-6 py-4">
+                              <td colSpan={5} className="px-4 py-4">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm bg-black/20 p-4 rounded-xl">
                                   <div className="flex items-center gap-2 text-xs font-mono text-white/50 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
                                     <MapPin className="w-3 h-3 text-blue-400" /> IP: {entry.ip || 'Local/Unknown'}

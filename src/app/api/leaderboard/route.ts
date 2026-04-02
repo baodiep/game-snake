@@ -25,10 +25,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Score not saved due to requirements.' });
     }
 
-    await db.execute({
-      sql: 'INSERT INTO leaderboard (name, score, duration, ip, fast, medium, slow) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      args: [name, score, duration, ip, stats.fast || 0, stats.medium || 0, stats.slow || 0]
+    const existing = await db.execute({
+      sql: 'SELECT id, score FROM leaderboard WHERE name = ? AND ip = ? LIMIT 1',
+      args: [name, ip]
     });
+
+    if (existing.rows && existing.rows.length > 0) {
+      const currentScore = existing.rows[0].score as number;
+      if (score > currentScore) {
+        await db.execute({
+          sql: 'UPDATE leaderboard SET score = ?, duration = ?, fast = ?, medium = ?, slow = ?, created_at = CURRENT_TIMESTAMP WHERE id = ?',
+          args: [score, duration, stats.fast || 0, stats.medium || 0, stats.slow || 0, existing.rows[0].id]
+        });
+      }
+    } else {
+      await db.execute({
+        sql: 'INSERT INTO leaderboard (name, score, duration, ip, fast, medium, slow) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        args: [name, score, duration, ip, stats.fast || 0, stats.medium || 0, stats.slow || 0]
+      });
+    }
 
     return NextResponse.json({ message: 'Score saved!' });
   } catch (error) {
