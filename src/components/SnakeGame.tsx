@@ -13,6 +13,17 @@ function formatTime(ms: number) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+async function generateHash(name: string, score: number, duration: number) {
+  const secret = process.env.NEXT_PUBLIC_API_SECRET || "SNAKE_NEON_SECRET_2026_!@#";
+  const data = `${name}-${score}-${duration}-${secret}`;
+  // Web Crypto API
+  const encoder = new TextEncoder();
+  const dataParams = encoder.encode(data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', dataParams);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 const StatsDisplay = ({ stats }: { stats: GameState['stats'] }) => (
   <div className="grid grid-cols-3 gap-3 w-full max-w-xs mt-4">
     <div className="bg-green-500/10 border border-green-500/20 p-2 rounded-xl text-center">
@@ -165,6 +176,7 @@ export default function SnakeGame() {
     if (gameState.score <= 0 || gameState.totalTime <= 10000) return;
 
     try {
+      const hash = await generateHash(playerName || 'Anonymous', gameState.score, gameState.totalTime);
       await fetch('/api/leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -172,7 +184,8 @@ export default function SnakeGame() {
           name: playerName || 'Anonymous',
           score: gameState.score,
           duration: gameState.totalTime,
-          stats: gameState.stats
+          stats: gameState.stats,
+          hash: hash
         }),
       });
     } catch (err) {
