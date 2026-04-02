@@ -221,7 +221,7 @@ export default function SnakeGame() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen text-white p-4">
       {/* Container with Glassmorphism */}
-      <div className={cn("relative w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 lg:p-10 shadow-2xl focus-within:ring-2 focus-within:ring-white transition-all duration-300", screen === 'PLAYING' ? "max-w-2xl lg:max-w-4xl" : "max-w-lg")}>
+      <div className={cn("relative w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 lg:p-10 shadow-2xl focus-within:ring-2 focus-within:ring-white transition-all duration-300", screen === 'PLAYING' ? "max-w-2xl lg:max-w-5xl" : "max-w-lg")}>
 
         {/* Decorative elements */}
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/20 blur-3xl rounded-full" />
@@ -283,7 +283,7 @@ export default function SnakeGame() {
         {screen === 'PLAYING' && (
           <div className="flex flex-col lg:flex-row w-full items-center justify-center gap-6 lg:gap-8 outline-none select-none">
             {/* Control Panel (Header & D-Pad) */}
-            <div className="flex flex-col w-full max-w-sm gap-4 order-2 lg:order-1 transition-all duration-300">
+            <div className="flex flex-col w-full max-w-sm lg:max-w-[320px] gap-4 order-2 lg:order-1 transition-all duration-300">
               <div className="flex justify-between lg:flex-col lg:gap-4 w-full bg-white/5 p-4 rounded-xl lg:rounded-2xl border border-white/10 backdrop-blur-md">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse hidden lg:block" />
@@ -348,7 +348,7 @@ export default function SnakeGame() {
               {...swipeHandlers}
               className={cn(
                 "relative transition-all duration-300 touch-none flex-shrink-0 order-1 lg:order-2 w-full",
-                showDPad ? "max-w-xs sm:max-w-sm lg:max-w-md" : "max-w-md sm:max-w-lg lg:max-w-xl"
+                showDPad ? "max-w-xs sm:max-w-sm lg:max-w-md" : "max-w-md sm:max-w-lg lg:max-w-[500px]"
               )}
             >
               <div
