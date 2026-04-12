@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Snake Game",
-  description: "A modern classic Snake Game built with Next.js and Tailwind CSS",
+  title: "Snake Game - BaoDiep",
+  description: "A modern classic Snake Game",
 };
 
 export default function RootLayout({

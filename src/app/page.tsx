@@ -10,7 +10,7 @@ export default function Home() {
       </div>
       <div className="absolute bottom-4 left-0 right-0 z-[100] text-center pointer-events-none">
         <p className="text-white/40 text-sm font-bold tracking-widest drop-shadow-md">
-           Author: BaoDiep - 2026
+           Author: BaoDiep - 2026 &nbsp;·&nbsp; v2.0.1
         </p>
       </div>
     </main>
