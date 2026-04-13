@@ -31,16 +31,24 @@ export async function POST(req: Request) {
     }
 
     // Sanity Check (Method 1)
-    // Max score is 10 points per food. To get 1 food requires at least 1 tick (150ms).
-    // Minimum time required = (score / 10) * 150 = score * 15
-    const minimumPossibleDuration = score * 15;
+    // Với cơ chế combo (lên tới 18đ) và bonus food (lên tới 30đ), điểm số có thể tăng nhanh hơn.
+    // Safe minimum time required: score * 3
+    const minimumPossibleDuration = score * 3;
     if (duration < minimumPossibleDuration) {
       return NextResponse.json({ error: 'Hack detected: Impossible score for the given duration.' }, { status: 403 });
     }
 
-    // Also check if score matches stats exactly
-    const calculatedScore = (stats.fast || 0) * 10 + (stats.medium || 0) * 7 + (stats.slow || 0) * 5;
-    if (score !== calculatedScore) {
+    // Kiểm tra tính hợp lệ của điểm so với stats (hỗ trợ combo và bonus food)
+    const baseScore = (stats.fast || 0) * 10 + (stats.medium || 0) * 7 + (stats.slow || 0) * 5;
+    const totalFoods = (stats.fast || 0) + (stats.medium || 0) + (stats.slow || 0);
+    
+    // Max theoretical score per food:
+    // - Fast food: 10 + 8 (max combo) = 18
+    // - Bonus food: max multiplier 3 * 10 = 30
+    // Lấy mốc an toàn là 60 điểm cho mỗi thức ăn ăn được
+    const maxTheoreticalScore = totalFoods * 60;
+
+    if (score < baseScore || (score > maxTheoreticalScore && score > 0)) {
       return NextResponse.json({ error: 'Hack detected: Score mismatch with stats.' }, { status: 403 });
     }
 
